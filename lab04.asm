@@ -59,16 +59,34 @@ msg_4:DB "Yes", 0DH, 0AH, 0
 msg_5:DB "Most Likely", 0DH, 0AH, 0
 msg_6:DB "Reply hazy, try again", 0DH, 0AH, 0
 msg_7:DB "Concentrate and ask again", 0DH, 0AH, 0
-msg_8:DB "Very Doubtful", 0DH, 0AH, 0
-msg_9:DB "My reply is no", 0DH, 0AH, 0
+msg_8:DB "Don't count on it", 0DH, 0AH, 0
+msg_9:DB "Very Doubtful", 0DH, 0AH, 0
+msg_10:DB "My reply is no", 0DH, 0AH, 0
 ;--------------------------------------------------------------------
 ;MAIN
 		
 		;DESCRIPTION
 		;This is the main routine that controls the flow of the program
 ;--------------------------------------------------------------------
-		
+main_loop:		
+		call delay
+		djnz random, continue
+		mov  random, #10
+		ret 
 
+continue:
+		call chk_btn
+		anl	  A, #0C0h
+		cjne  A, #0, btn_pressed
+		mov 	A, SCON0
+		anl 	A, #1
+		cjne  A, #0, btn_pressed
+		sjmp main_loop
+
+btn_pressed:
+		call disp_led
+		call send_str
+		sjmp  main_loop
 
 finished:
 		jmp finished
@@ -79,6 +97,7 @@ finished:
 		;DESCRIPTION
 		;This is the routine that has a 10 ms delay
 ;--------------------------------------------------------------------
+
 
 delay:
 
@@ -109,7 +128,7 @@ send_str:
 
 		clr C
 		movc	A, @A + dptr
-		jz		finished			; finish this
+		jz		finished			
 		call	send_char
 		inc 	dptr
 		jmp		send_str	
@@ -144,25 +163,14 @@ chk_btn:	mov A,P2
 					xch	A, old_btn
 					xrl A, old_btn
 					anl A, old_btn
+
+					
 					ret
 
 ; Check if the RI flag is 1?
-;--------------------------------------------------------------------
-;RANDOM
 
-		;DESCRIPTION
-		;This subroutine will take the timer and 
 
-;-------------------------------------------------------------------
 
-create_random:
-		call delay
-		djnz random, continue
-		mov  random, #10
-		ret 
-
-continue:
-		call chk_btn
 
 ;------------------------------------------------------------------
 ;DISPLAY_LED
@@ -180,41 +188,51 @@ disp_led: mov p3, #0FFh 			;turn LED's off
 					mov a, pos 					;	check if 0
 					cjne a, #1, not_one	; junp if 0
 					clr p3.0						; turn on LED 1
+					mov dptr, #msg_1
 					ret									; return to an end game state
 
 not_one: cjne a,#2,not_two		; compare if pos (which is in accum) is 1
-					clr p3.1						; turn on LED 2
+					clr p3.1
+					mov dptr, #msg_2						; turn on LED 2
 					ret									; return to an end game state
 
 not_two:  cjne a,#3,not_three	; compare if pos is 2
 					clr p3.2						; turn on LED 3
+					mov dptr, #msg_3
 					ret									; return to an end game state
 
 not_three:cjne a,#4,not_four	; compare if pos is 3
 					clr p3.3						; turn on LED 4
+					mov dptr, #msg_4
 					ret									; return to an end game state
 
 not_four:cjne a,#5,not_five		; compare if pos is 4
 					clr p3.4						; turn on LED 5
+					mov dptr, #msg_5
 					ret									; return to an end game state
 		
 not_five: cjne a,#6,not_six		; compare if pos is 5
 					clr p3.5						; turn on LED 6
+					mov dptr, #msg_6
 					ret									; return to an end game state
 
 not_six: cjne a,#7,not_seven		; compare if pos is 6
 					clr p3.6						; turn on LED 7
+					mov dptr, #msg_7
 					ret									; return to an end game state
 
 not_seven:cjne a,#8,not_eight	; compare if pos is 7
 					clr p3.7						; turn on LED 8
+					mov dptr, #msg_8
 					ret									; return to an end game state
 
 not_eight:cjne a,#9,not_nine	; compare if pos is 8
 					clr p2.0						; turn on LED 9
+					mov dptr, #msg_9
 					ret									; return to an end game state
 
 not_nine:	clr p2.1						; turn on LED 10
+					mov dptr, #msg_10
 					ret									; return to an end game state
 
 end
