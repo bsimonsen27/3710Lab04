@@ -25,7 +25,8 @@ $include (c8051f020.inc)
 dseg at 30h
 	pos:	ds 1				; stores the position for the LED
 
-org	0
+;org	0
+	cseg
 	mov wdtcn,#0DEh 	; disable watchdog
 	mov	wdtcn,#0ADh
 	mov	xbr2,#40h			; enable port output
