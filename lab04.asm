@@ -24,6 +24,8 @@ $include (c8051f020.inc)
 	; declaring variables
 dseg at 30h
 	pos:	ds 1				; stores the position for the LED
+  old_btn: ds 1
+	random:  ds 1
 
 ;org	0
 	cseg
@@ -68,8 +70,8 @@ msg_9:DB "My reply is no", 0DH, 0AH, 0
 		
 
 
-end:
-		jmp end
+finished:
+		jmp finished
 
 ;--------------------------------------------------------------------
 ;10 ms delay
@@ -107,10 +109,10 @@ send_str:
 
 		clr C
 		movc	A, @A + dptr
-		jz		done			; finish this
+		jz		finished			; finish this
 		call	send_char
 		inc 	dptr
-		jmp		send_str:		
+		jmp		send_str	
 
 
 ;--------------------------------------------------------------------
@@ -153,14 +155,14 @@ chk_btn:	mov A,P2
 
 ;-------------------------------------------------------------------
 
-random:
+create_random:
 		call delay
 		djnz random, continue
-		mov  random. #10
+		mov  random, #10
 		ret 
 
-continue
-		call check_buttons.
+continue:
+		call chk_btn
 
 ;------------------------------------------------------------------
 ;DISPLAY_LED
