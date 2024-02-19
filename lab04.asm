@@ -21,8 +21,83 @@
 
 $include (c8051f020.inc)
 
-cseg
-	mov		wdtcn,#0DEh
-	mov		wdtcn,#0ADh
+	; declaring variables
+dseg at 30h
+	pos:	ds 1				; stores the position for the LED
 
-	mov			xbr2,#40H		; activate I/O ports
+org	0
+	mov wdtcn,#0DEh 	; disable watchdog
+	mov	wdtcn,#0ADh
+	mov	xbr2,#40h			; enable port output
+	mov	xbr0,#04h			; enable uart 0
+	mov	oscxcn,#67H		; turn on external crystal
+	mov	tmod,#20H			; wait 1ms using T1 mode 2
+	mov	th1,#256-167	; 2MHz clock, 167 counts = 1ms
+	setb	tr1
+wait1:
+	jnb	tf1,wait1
+	clr	tr1						; 1ms has elapsed, stop timer
+	clr	tf1
+wait2:
+	mov	a,oscxcn			; now wait for crystal to stabilize
+	jnb	acc.7,wait2
+	mov	oscicn,#8			; engage! Now using 22.1184MHz
+
+	mov	scon0,#50H		; 8-bit, variable baud, receive enable
+	mov	th1,#-6				; 9600 baud
+	setb	tr1					; start baud clock
+
+	;------------------------------------------------------------------
+;DISPLAY_LED
+;
+; DESCRIPTION:
+;	This subroutine will take the random value stored in the 'pos'
+; variable and displays that LED
+;
+;--------------------------------------------------------------------
+
+; Display led's
+disp_led: mov p3, #0FFh 			;turn LED's off
+					orl p2, #003h				;turn LED's off
+
+					mov a, pos 					;	check if 0
+					cjne a, #1, not_one	; junp if 0
+					clr p3.0						; turn on LED 1
+					ret									; return to an end game state
+
+not_one: cjne a,#2,not_two		; compare if pos (which is in accum) is 1
+					clr p3.1						; turn on LED 2
+					ret									; return to an end game state
+
+not_two:  cjne a,#3,not_three	; compare if pos is 2
+					clr p3.2						; turn on LED 3
+					ret									; return to an end game state
+
+not_three:cjne a,#4,not_four	; compare if pos is 3
+					clr p3.3						; turn on LED 4
+					ret									; return to an end game state
+
+not_four:cjne a,#5,not_five		; compare if pos is 4
+					clr p3.4						; turn on LED 5
+					ret									; return to an end game state
+		
+not_five: cjne a,#6,not_six		; compare if pos is 5
+					clr p3.5						; turn on LED 6
+					ret									; return to an end game state
+
+not_six: cjne a,#7,not_seven		; compare if pos is 6
+					clr p3.6						; turn on LED 7
+					ret									; return to an end game state
+
+not_seven:cjne a,#8,not_eight	; compare if pos is 7
+					clr p3.7						; turn on LED 8
+					ret									; return to an end game state
+
+not_eight:cjne a,#9,not_nine	; compare if pos is 8
+					clr p2.0						; turn on LED 9
+					ret									; return to an end game state
+
+not_nine:	clr p2.1						; turn on LED 10
+					ret									; return to an end game state
+
+end
